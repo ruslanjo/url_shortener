@@ -43,11 +43,8 @@ func CreateShortUrl(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetUrlByShortLink(w http.ResponseWriter, req *http.Request) {
-	//fmt.Println(storage)
 	shortURL := req.URL.String()[1:]
 	full, ok := storage[shortURL]
-	fmt.Println(shortURL, full, ok)
-	fmt.Println("aaaa")
 	if ok == false {
 		http.Error(w, "Not found", http.StatusBadRequest)
 		return
