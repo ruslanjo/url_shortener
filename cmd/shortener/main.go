@@ -1,18 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ruslanjo/url_shortener/internal/app/handlers"
+	"github.com/ruslanjo/url_shortener/internal/config"
 )
 
 func main() {
-	host := "0.0.0.0"
-	port := 8080
-	addr := fmt.Sprintf("%s:%d", host, port)
-
-	err := http.ListenAndServe(addr, http.HandlerFunc(handlers.Dispatcher))
+	err := http.ListenAndServe(config.Addr, http.HandlerFunc(handlers.Dispatcher))
 	if err != nil {
 		panic(err)
 	}
