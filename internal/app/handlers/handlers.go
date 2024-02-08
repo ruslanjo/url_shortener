@@ -15,16 +15,16 @@ var storage = make(map[string]string)
 func Dispatcher(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodPost:
-		CreateShortUrl(w, req)
+		CreateShortURL(w, req)
 	case http.MethodGet:
-		GetUrlByShortLink(w, req)
+		GetURLByShortLink(w, req)
 	default:
 		http.Error(w, "Methods GET and POST allowed", http.StatusMethodNotAllowed)
 
 	}
 }
 
-func CreateShortUrl(w http.ResponseWriter, req *http.Request) {
+func CreateShortURL(w http.ResponseWriter, req *http.Request) {
 	data, err := io.ReadAll(req.Body)
 	if err != nil {
 		w.Write([]byte(err.Error()))
@@ -42,10 +42,10 @@ func CreateShortUrl(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(fmt.Sprintf("http://%s/%s", config.Addr, encodedURL)))
 }
 
-func GetUrlByShortLink(w http.ResponseWriter, req *http.Request) {
+func GetURLByShortLink(w http.ResponseWriter, req *http.Request) {
 	shortURL := req.URL.String()[1:]
 	full, ok := storage[shortURL]
-	if ok == false {
+	if !ok {
 		http.Error(w, "Not found", http.StatusBadRequest)
 		return
 	}
