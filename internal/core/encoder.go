@@ -15,3 +15,9 @@ func EncodeHash(hash []byte) string {
 	encoded := base64.URLEncoding.EncodeToString(hash)
 	return encoded
 }
+
+func GenerateShortURL(s string) string{
+	hash := HashString(s)
+	encoded := EncodeHash(hash)
+	return encoded
+}
