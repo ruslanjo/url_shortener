@@ -20,7 +20,7 @@ func (dao *HashMapDAO) GetURLByShortLink(shortLink string) (string, error) {
 		return value, nil
 	} else {
 		fmt.Println(value, ok)
-		return value, URLNotFoundError
+		return value, ErrURLMappingNotFound
 	}
 }
 

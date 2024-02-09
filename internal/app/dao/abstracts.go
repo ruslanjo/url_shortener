@@ -3,7 +3,7 @@ package dao
 import "errors"
 
 var (
-	URLNotFoundError = errors.New("URL not found")
+	ErrURLMappingNotFound = errors.New("URL not found")
 )
 
 type AbstractDAO interface {
