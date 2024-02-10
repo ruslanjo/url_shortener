@@ -103,6 +103,8 @@ func TestGetURLByShortLinkHandler(t *testing.T) {
 			GetURLByShortLinkHandler(mockDao)(w, r)
 
 			res := w.Result()
+
+			defer res.Body.Close()
 			assert.Equal(t, tt.info.code, res.StatusCode)
 
 			if tt.info.code == http.StatusTemporaryRedirect {
