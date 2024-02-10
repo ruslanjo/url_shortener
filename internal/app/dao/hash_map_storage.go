@@ -25,3 +25,9 @@ func (dao *HashMapDAO) AddShortURL(shortLink string, fullLink string) error {
 	dao.storage[shortLink] = fullLink
 	return nil
 }
+
+
+func (dao *HashMapDAO) InitStorage(storage map[string]string){
+	// Is needed for unit-tests
+	dao.storage = storage
+}
