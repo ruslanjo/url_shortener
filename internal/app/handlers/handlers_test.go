@@ -29,7 +29,7 @@ type TestMeta []struct {
 }
 
 func getLink(resource string) string {
-	return fmt.Sprintf("%s/%s", config.FullAddr, resource)
+	return fmt.Sprintf("%s/%s", config.BaseServerReturnAddr, resource)
 }
 
 func TestCreateShortURLHandler(t *testing.T) {

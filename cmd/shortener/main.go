@@ -23,8 +23,10 @@ func setUpRouter(dao dao.AbstractDAO) *chi.Mux {
 }
 
 func main() {
+	parseFlags()
 
 	dao := &dao.HashMapDAO{}
 	r := setUpRouter(dao)
-	log.Fatal(http.ListenAndServe(config.Addr, r))
+
+	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }

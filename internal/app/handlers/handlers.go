@@ -32,7 +32,7 @@ func CreateShortURLHandler(dao dao.AbstractDAO) http.HandlerFunc {
 
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("%s/%s", config.FullAddr, encodedURL)))
+		w.Write([]byte(fmt.Sprintf("%s/%s", config.BaseServerReturnAddr, encodedURL)))
 	}
 }
 
