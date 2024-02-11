@@ -6,24 +6,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/ruslanjo/url_shortener/internal/app/dao"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/ruslanjo/url_shortener/internal/core"
 )
-
-func Dispatcher(dao dao.AbstractDAO) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-		case http.MethodPost:
-			CreateShortURLHandler(dao)(w, req)
-		case http.MethodGet:
-			GetURLByShortLinkHandler(dao)(w, req)
-		default:
-			http.Error(w, "Methods GET and POST allowed", http.StatusMethodNotAllowed)
-
-		}
-	}
-}
 
 func CreateShortURLHandler(dao dao.AbstractDAO) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -51,7 +38,8 @@ func CreateShortURLHandler(dao dao.AbstractDAO) http.HandlerFunc {
 
 func GetURLByShortLinkHandler(dao dao.AbstractDAO) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		shortURL := req.URL.String()[1:]
+
+		shortURL := chi.URLParam(req, "shortURL")
 		full, err := dao.GetURLByShortLink(shortURL)
 		if err != nil {
 			http.Error(w, "Not found", http.StatusBadRequest)

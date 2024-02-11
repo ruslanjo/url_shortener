@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/ruslanjo/url_shortener/internal/app/dao"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -99,6 +101,11 @@ func TestGetURLByShortLinkHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s", tt.info.shortLink), nil)
+
+			rtcx := chi.NewRouteContext()
+			rtcx.URLParams.Add("shortURL", tt.info.shortLink)
+
+			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rtcx))
 
 			GetURLByShortLinkHandler(mockDao)(w, r)
 
