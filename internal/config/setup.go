@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"os"
-	"fmt"
 )
 
 func parseFlags() {
@@ -30,5 +29,4 @@ func ConfigureApp() {
 	for k, v := range envs {
 		setEnvsToConfig(v, k)
 	}
-	fmt.Println(ServerAddr, BaseServerReturnAddr)
 }
