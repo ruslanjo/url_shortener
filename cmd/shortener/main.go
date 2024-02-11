@@ -23,7 +23,7 @@ func setUpRouter(dao dao.AbstractDAO) *chi.Mux {
 }
 
 func main() {
-	parseFlags()
+	config.ConfigureApp()
 
 	dao := &dao.HashMapDAO{}
 	r := setUpRouter(dao)
