@@ -5,28 +5,30 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/ruslanjo/url_shortener/internal/app/dao"
+	"github.com/ruslanjo/url_shortener/internal/app/storage"
 	"github.com/ruslanjo/url_shortener/internal/app/handlers"
+	"github.com/ruslanjo/url_shortener/internal/app/middleware"
 	"github.com/ruslanjo/url_shortener/internal/config"
+	"github.com/ruslanjo/url_shortener/internal/logger"
 )
 
-func setUpRouter(dao dao.AbstractDAO) *chi.Mux {
+func setUpRouter(storage storage.AbstractStorage) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	r.Use(middleware.RequestLogger)
 
 	r.Route("/", func(r chi.Router) {
-		r.Post("/", handlers.CreateShortURLHandler(dao))
-		r.Get("/{shortURL}", handlers.GetURLByShortLinkHandler(dao))
+		r.Post("/", handlers.CreateShortURLHandler(storage))
+		r.Get("/{shortURL}", handlers.GetURLByShortLinkHandler(storage))
 	})
 	return r
 }
 
 func main() {
 	config.ConfigureApp()
+	logger.Initialize("info")
 
-	dao := &dao.HashMapDAO{}
+	dao := &storage.HashMapStorage{}
 	r := setUpRouter(dao)
-
+	logger.Log.Infoln("Starting server")
 	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }

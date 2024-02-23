@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/ruslanjo/url_shortener/internal/app/dao"
+	"github.com/ruslanjo/url_shortener/internal/app/storage"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func getLink(resource string) string {
 }
 
 func TestCreateShortURLHandler(t *testing.T) {
-	mockDao := &dao.HashMapDAO{}
+	mockDao := &storage.HashMapStorage{}
 
 	testSuits := []struct {
 		name string
@@ -73,7 +73,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 func TestGetURLByShortLinkHandler(t *testing.T) {
 
-	mockDao := &dao.HashMapDAO{}
+	mockDao := &storage.HashMapStorage{}
 	mockDao.InitStorage(
 		map[string]string{"6YGS4ZUFRyR2pJ8QOIQoqw==": "https://ya.ru"},
 	)

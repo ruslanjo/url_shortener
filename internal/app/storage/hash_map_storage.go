@@ -1,11 +1,11 @@
-package dao
+package storage
 
 
-type HashMapDAO struct {
+type HashMapStorage struct {
 	storage map[string]string
 }
 
-func (dao *HashMapDAO) GetURLByShortLink(shortLink string) (string, error) {
+func (dao *HashMapStorage) GetURLByShortLink(shortLink string) (string, error) {
 
 	if dao.storage == nil {
 		dao.storage = make(map[string]string)
@@ -18,7 +18,7 @@ func (dao *HashMapDAO) GetURLByShortLink(shortLink string) (string, error) {
 	}
 }
 
-func (dao *HashMapDAO) AddShortURL(shortLink string, fullLink string) error {
+func (dao *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 	if dao.storage == nil {
 		dao.storage = make(map[string]string)
 	}
@@ -27,7 +27,7 @@ func (dao *HashMapDAO) AddShortURL(shortLink string, fullLink string) error {
 }
 
 
-func (dao *HashMapDAO) InitStorage(storage map[string]string){
+func (dao *HashMapStorage) InitStorage(storage map[string]string){
 	// Is needed for unit-tests
 	dao.storage = storage
 }
