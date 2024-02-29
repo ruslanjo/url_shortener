@@ -70,7 +70,7 @@ func GetShortURLJSONHandler() http.HandlerFunc {
 		}
 		output.Result = core.GenerateShortURL(input.URL)
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusCreated)
 
 		response, err := json.Marshal(output)
 		if err != nil {

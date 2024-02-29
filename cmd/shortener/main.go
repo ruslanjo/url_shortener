@@ -19,7 +19,7 @@ func setUpRouter(storage storage.AbstractStorage) *chi.Mux {
 	r.Route("/", func(r chi.Router) {
 		r.Post("/", handlers.CreateShortURLHandler(storage))
 		r.Get("/{shortURL}", handlers.GetURLByShortLinkHandler(storage))
-		r.Get("/api/shorten", handlers.GetShortURLJSONHandler())
+		r.Post("/api/shorten", handlers.GetShortURLJSONHandler())
 	})
 	return r
 }

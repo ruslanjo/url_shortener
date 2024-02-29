@@ -144,9 +144,9 @@ func TestGetShortURLJSONHandler(t *testing.T) {
 			expectedBody: "",
 		},
 		{
-			name:         "Success GET",
+			name:         "Success POST",
 			body:         `{"url": "http://ya.ru"}`,
-			expectedCode: http.StatusOK,
+			expectedCode: http.StatusCreated,
 			expectedBody: `{"result": "G1VrRKTuc1JPsAnhGRj7Tw=="}`,
 		},
 	}
@@ -155,7 +155,7 @@ func TestGetShortURLJSONHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := bytes.NewBuffer([]byte(tt.body))
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, url, buf)
+			r := httptest.NewRequest(http.MethodPost, url, buf)
 			if len(tt.body) > 0 {
 				r.Header.Set("Content-Type", "application/json")
 			}
