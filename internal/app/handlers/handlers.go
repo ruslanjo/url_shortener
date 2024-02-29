@@ -48,14 +48,14 @@ func GetURLByShortLinkHandler(storage storage.AbstractStorage) http.HandlerFunc 
 	}
 }
 
-func GetShortURLJSONHandler() http.HandlerFunc {
+func GetShortURLJSONHandler(storage storage.AbstractStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			input struct {
 				URL string `json:"url"`
 			}
 			output struct {
-				Result string `json:"result"`
+				URL string `json:"result"`
 			}
 		)
 
@@ -68,7 +68,7 @@ func GetShortURLJSONHandler() http.HandlerFunc {
 			http.Error(w, "Please, pass url with length gt 0", http.StatusBadRequest)
 			return
 		}
-		output.Result = core.GenerateShortURL(input.URL)
+		output.URL = core.GenerateShortURL(input.URL)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
@@ -76,6 +76,7 @@ func GetShortURLJSONHandler() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		storage.AddShortURL(output.URL, input.URL)
 		w.Write(response)
 
 	}

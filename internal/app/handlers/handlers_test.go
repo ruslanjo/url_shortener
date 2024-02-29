@@ -124,6 +124,7 @@ func TestGetURLByShortLinkHandler(t *testing.T) {
 }
 
 func TestGetShortURLJSONHandler(t *testing.T) {
+	storage := &storage.HashMapStorage{}
 	url := "/api/shorten"
 	testSuits := []struct {
 		name         string
@@ -159,7 +160,7 @@ func TestGetShortURLJSONHandler(t *testing.T) {
 			if len(tt.body) > 0 {
 				r.Header.Set("Content-Type", "application/json")
 			}
-			GetShortURLJSONHandler()(w, r)
+			GetShortURLJSONHandler(storage)(w, r)
 			res := w.Result()
 			defer res.Body.Close()
 			body, err := io.ReadAll(res.Body)
