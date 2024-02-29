@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -44,5 +45,38 @@ func GetURLByShortLinkHandler(storage storage.AbstractStorage) http.HandlerFunc 
 			return
 		}
 		http.Redirect(w, req, full, http.StatusTemporaryRedirect)
+	}
+}
+
+func GetShortURLJSONHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			input struct {
+				URL string `json:"url"`
+			}
+			output struct {
+				Result string `json:"result"`
+			}
+		)
+
+		err := json.NewDecoder(r.Body).Decode(&input)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if len(input.URL) == 0 {
+			http.Error(w, "Please, pass url with length gt 0", http.StatusBadRequest)
+			return
+		}
+		output.Result = core.GenerateShortURL(input.URL)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		response, err := json.Marshal(output)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		w.Write(response)
+
 	}
 }

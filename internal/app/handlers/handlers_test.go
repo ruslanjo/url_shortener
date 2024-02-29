@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -120,4 +121,56 @@ func TestGetURLByShortLinkHandler(t *testing.T) {
 		})
 	}
 
+}
+
+func TestGetShortURLJSONHandler(t *testing.T) {
+	url := "/api/shorten"
+	testSuits := []struct {
+		name         string
+		body         string
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "empty body",
+			body:         "",
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "",
+		},
+		{
+			name:         "wrong JSON",
+			body:         `{"url": "bla}`,
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "",
+		},
+		{
+			name:         "Success GET",
+			body:         `{"url": "http://ya.ru"}`,
+			expectedCode: http.StatusOK,
+			expectedBody: `{"result": "G1VrRKTuc1JPsAnhGRj7Tw=="}`,
+		},
+	}
+
+	for _, tt := range testSuits {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := bytes.NewBuffer([]byte(tt.body))
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, url, buf)
+			if len(tt.body) > 0 {
+				r.Header.Set("Content-Type", "application/json")
+			}
+			GetShortURLJSONHandler()(w, r)
+			res := w.Result()
+			defer res.Body.Close()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			assert.Equal(t, tt.expectedCode, res.StatusCode)
+			if tt.expectedBody != "" {
+				assert.JSONEq(t, tt.expectedBody, string(body))
+			}
+
+		})
+	}
 }
