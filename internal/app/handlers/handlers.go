@@ -68,7 +68,11 @@ func GetShortURLJSONHandler(storage storage.AbstractStorage) http.HandlerFunc {
 			http.Error(w, "Please, pass url with length gt 0", http.StatusBadRequest)
 			return
 		}
-		output.URL = core.GenerateShortURL(input.URL)
+		shortURL := core.GenerateShortURL(input.URL)
+		output.URL = fmt.Sprintf(
+			"%s/%s",
+			config.BaseServerReturnAddr, shortURL,
+		)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
@@ -76,7 +80,11 @@ func GetShortURLJSONHandler(storage storage.AbstractStorage) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		storage.AddShortURL(output.URL, input.URL)
+		err = storage.AddShortURL(shortURL, input.URL)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Write(response)
 
 	}

@@ -148,7 +148,7 @@ func TestGetShortURLJSONHandler(t *testing.T) {
 			name:         "Success POST",
 			body:         `{"url": "http://ya.ru"}`,
 			expectedCode: http.StatusCreated,
-			expectedBody: `{"result": "G1VrRKTuc1JPsAnhGRj7Tw=="}`,
+			expectedBody: `{"result": "http://localhost:8080/G1VrRKTuc1JPsAnhGRj7Tw=="}`,
 		},
 	}
 
