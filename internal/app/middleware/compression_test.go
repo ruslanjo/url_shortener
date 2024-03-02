@@ -59,6 +59,7 @@ func TestGzipCompression(t *testing.T) {
 		r := httptest.NewRequest("POST", srv.URL, buf)
 		r.RequestURI = ""
 		r.Header.Set("Accept-Encoding", "gzip")
+		r.Header.Set("Content-Type", "application/json")
 
 		resp, err := http.DefaultClient.Do(r)
 		require.NoError(t, err)

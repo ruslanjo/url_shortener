@@ -10,15 +10,15 @@ import (
 )
 
 type compressWriter struct {
-	w      http.ResponseWriter
-	cw     io.WriteCloser
+	w     http.ResponseWriter
+	cw    io.WriteCloser
 	cType string
 }
 
 func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	return &compressWriter{
-		w:      w,
-		cw:     gzip.NewWriter(w),
+		w:     w,
+		cw:    gzip.NewWriter(w),
 		cType: config.SelectedCompressionType,
 	}
 }
@@ -67,12 +67,24 @@ func (c compressReader) Close() error {
 	return c.cr.Close()
 }
 
+func isApplicableContentType(contentType string) bool {
+	applicable := [2]string{"application/json", "text/html"}
+	contentType = strings.ToLower(contentType)
+	for _, ct := range applicable {
+		if contentType == ct {
+			return true
+		}
+	}
+	return false
+}
+
 func Compression(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		writer := w
 		acceptEncoding := r.Header.Get("Accept-Encoding")
 		supportsCompr := strings.Contains(acceptEncoding, config.SelectedCompressionType)
-		if supportsCompr {
+		isApplicableCT := isApplicableContentType(r.Header.Get("Content-Type"))
+		if supportsCompr && isApplicableCT{
 			cw := newCompressWriter(w)
 			writer = cw
 			defer cw.Close()
