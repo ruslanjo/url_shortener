@@ -12,14 +12,14 @@ import (
 type compressWriter struct {
 	w      http.ResponseWriter
 	cw     io.WriteCloser
-	c_type string
+	cType string
 }
 
 func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	return &compressWriter{
 		w:      w,
 		cw:     gzip.NewWriter(w),
-		c_type: config.SelectedCompressionType,
+		cType: config.SelectedCompressionType,
 	}
 }
 
@@ -32,7 +32,7 @@ func (c *compressWriter) Header() http.Header {
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	c.w.Header().Set("Content-Encoding", string(c.c_type))
+	c.w.Header().Set("Content-Encoding", string(c.cType))
 	c.w.WriteHeader(statusCode)
 }
 
@@ -46,13 +46,13 @@ type compressReader struct {
 }
 
 func newCompressReader(body io.ReadCloser) (*compressReader, error) {
-	zip_r, err := gzip.NewReader(body)
+	zipR, err := gzip.NewReader(body)
 	if err != nil {
 		return nil, err
 	}
 	return &compressReader{
 		body: body,
-		cr:   zip_r,
+		cr:   zipR,
 	}, nil
 }
 
@@ -81,13 +81,13 @@ func Compression(next http.Handler) http.Handler {
 		isEncoded := r.Header.Get("Content-Encoding")
 		sendsCompr := strings.Contains(isEncoded, config.SelectedCompressionType)
 		if sendsCompr {
-			c_r, err := newCompressReader(r.Body)
+			cr, err := newCompressReader(r.Body)
 			if err != nil {
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			r.Body = c_r
-			defer c_r.Close()
+			r.Body = cr
+			defer cr.Close()
 		}
 
 		next.ServeHTTP(writer, r)
