@@ -15,6 +15,7 @@ import (
 func setUpRouter(storage storage.AbstractStorage) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestLogger)
+	r.Use(middleware.Compression)
 
 	r.Route("/", func(r chi.Router) {
 		r.Post("/", handlers.CreateShortURLHandler(storage))

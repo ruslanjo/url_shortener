@@ -12,3 +12,11 @@ var (
 	ServerAddr           string = fmt.Sprintf("%s:%d", DefaultServerHost, DefaultServerPort)
 	BaseServerReturnAddr string = fmt.Sprintf("%s://%s", Protocol, ServerAddr)
 )
+
+const (
+	GZIP string = "gzip"
+)
+
+const (
+	SelectedCompressionType string = GZIP
+)
