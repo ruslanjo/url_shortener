@@ -11,6 +11,7 @@ var (
 	Protocol             string = "http"
 	ServerAddr           string = fmt.Sprintf("%s:%d", DefaultServerHost, DefaultServerPort)
 	BaseServerReturnAddr string = fmt.Sprintf("%s://%s", Protocol, ServerAddr)
+	LocalStoragePath     string
 )
 
 const (
