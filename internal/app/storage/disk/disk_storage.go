@@ -1,7 +1,7 @@
 package disk
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"sync"
 )
@@ -32,7 +32,7 @@ func (d DiskStorage) readAll() ([]byte, error) {
 		return nil, err
 	}
 	defer f.Close()
-	data, err = ioutil.ReadAll(f)
+	data, err = io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +48,11 @@ func (d DiskStorage) persist(data []byte) error {
 		return err
 	}
 	defer f.Close()
-	p_data := make([]byte, len(data), len(data)+1)
-	_ = copy(p_data, data)
-	p_data = append(p_data, '\n')
+	pData := make([]byte, len(data), len(data)+1)
+	_ = copy(pData, data)
+	pData = append(pData, '\n')
 
-	if _, err = f.Write(p_data); err != nil {
+	if _, err = f.Write(pData); err != nil {
 		return err
 	}
 	return nil

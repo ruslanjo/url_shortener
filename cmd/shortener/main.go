@@ -32,8 +32,8 @@ func main() {
 	logger.Initialize("info")
 
 	ds := disk.DiskStorage{Path: config.LocalStoragePath}
-	url_ds := disk.NewUrlDiskStorage(ds)
-	storage := storage.NewHashMapStorage(url_ds)
+	urlDs := disk.NewURLDiskStorage(ds)
+	storage := storage.NewHashMapStorage(urlDs)
 	fmt.Print(config.LocalStoragePath)
 	if err := storage.LoadFromDisk(); err != nil {
 		log.Fatal(err)

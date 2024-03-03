@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-type JsonURLDiskStorage struct {
+type JSONURLDiskStorage struct {
 	diskStorage DiskStorage
 }
 
-func NewUrlDiskStorage(ds DiskStorage) *JsonURLDiskStorage {
-	return &JsonURLDiskStorage{diskStorage: ds}
+func NewURLDiskStorage(ds DiskStorage) *JSONURLDiskStorage {
+	return &JSONURLDiskStorage{diskStorage: ds}
 }
 
-func (m JsonURLDiskStorage) Persist(entity URLSchema) error {
+func (m JSONURLDiskStorage) Persist(entity URLSchema) error {
 	data, err := json.Marshal(entity)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func (m JsonURLDiskStorage) Persist(entity URLSchema) error {
 	return nil
 }
 
-func (m JsonURLDiskStorage) ReadAll() ([]URLSchema, error) {
+func (m JSONURLDiskStorage) ReadAll() ([]URLSchema, error) {
 	data, err := m.diskStorage.readAll()
 	if err != nil {
 		return nil, err
@@ -33,8 +33,8 @@ func (m JsonURLDiskStorage) ReadAll() ([]URLSchema, error) {
 	if len(data) == 0 {
 		return []URLSchema{}, nil
 	}
-	data_str := strings.Trim(string(data), "\n")
-	chunks := strings.Split(data_str, "\n")
+	dataStr := strings.Trim(string(data), "\n")
+	chunks := strings.Split(dataStr, "\n")
 	out := make([]URLSchema, 0, len(chunks))
 	for _, partition := range chunks {
 		schema := new(URLSchema)
