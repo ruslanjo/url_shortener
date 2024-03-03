@@ -8,6 +8,7 @@ import (
 	"github.com/ruslanjo/url_shortener/internal/app/handlers"
 	"github.com/ruslanjo/url_shortener/internal/app/middleware"
 	"github.com/ruslanjo/url_shortener/internal/app/storage"
+	"github.com/ruslanjo/url_shortener/internal/app/storage/disk"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/ruslanjo/url_shortener/internal/logger"
 )
@@ -29,8 +30,13 @@ func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
 
-	dao := &storage.HashMapStorage{}
-	r := setUpRouter(dao)
+	ds := disk.DiskStorage{Path: "storage.txt"}
+	url_ds := disk.NewUrlDiskStorage(ds)
+	storage := storage.NewHashMapStorage(url_ds)
+	if err := storage.LoadFromDisk(); err != nil {
+		log.Fatal(err)
+	}
+	r := setUpRouter(storage)
 	logger.Log.Infoln("Starting server")
 	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }

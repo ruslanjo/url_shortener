@@ -1,33 +1,61 @@
 package storage
 
+import (
+	"github.com/ruslanjo/url_shortener/internal/app/storage/disk"
+)
 
 type HashMapStorage struct {
-	storage map[string]string
+	data        map[string]string
+	diskStorage disk.URLStorage
 }
 
-func (dao *HashMapStorage) GetURLByShortLink(shortLink string) (string, error) {
+func NewHashMapStorage(disk disk.URLStorage) *HashMapStorage {
+	d := map[string]string{}
+	return &HashMapStorage{data: d, diskStorage: disk}
 
-	if dao.storage == nil {
-		dao.storage = make(map[string]string)
+}
+
+func (s *HashMapStorage) GetURLByShortLink(shortLink string) (string, error) {
+
+	if s.data == nil {
+		s.data = make(map[string]string)
 	}
 
-	if value, ok := dao.storage[shortLink]; ok {
+	if value, ok := s.data[shortLink]; ok {
 		return value, nil
 	} else {
 		return value, ErrURLMappingNotFound
 	}
 }
 
-func (dao *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
-	if dao.storage == nil {
-		dao.storage = make(map[string]string)
+func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
+	if s.data == nil {
+		s.data = make(map[string]string)
 	}
-	dao.storage[shortLink] = fullLink
+	s.data[shortLink] = fullLink
+	// TODO create service layer for it
+	url := disk.URLSchema{ShortLink: shortLink, FullLink: fullLink}
+	if err := s.diskStorage.Persist(url); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-
-func (dao *HashMapStorage) InitStorage(storage map[string]string){
+func (s *HashMapStorage) InitStorage(data map[string]string) {
 	// Is needed for unit-tests
-	dao.storage = storage
+	s.data = data
+}
+
+func (s *HashMapStorage) LoadFromDisk() error {
+	d := make(map[string]string)
+	diskData, err := s.diskStorage.ReadAll()
+	if err != nil {
+		return err
+	}
+	for _, ent := range diskData {
+		d[ent.ShortLink] = ent.FullLink
+	}
+	s.data = d
+	return nil
 }
