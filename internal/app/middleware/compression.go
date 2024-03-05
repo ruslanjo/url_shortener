@@ -11,21 +11,27 @@ import (
 
 type compressWriter struct {
 	w     http.ResponseWriter
-	cw    io.WriteCloser
+	cw    *gzip.Writer
 	cType string
 }
 
 func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	return &compressWriter{
 		w:     w,
-		cw:    gzip.NewWriter(w),
+		cw:    nil,
 		cType: config.SelectedCompressionType,
 	}
+}
+
+func (c *compressWriter) initCompressor() {
+	cw := gzip.NewWriter(c.w)
+	c.cw = cw
 }
 
 func (c *compressWriter) Write(data []byte) (int, error) {
 	ct := c.w.Header().Get("Content-Type")
 	if isApplicableContentType(ct) {
+		c.initCompressor()
 		return c.cw.Write(data)
 	}
 	return c.w.Write(data)
@@ -44,7 +50,12 @@ func (c *compressWriter) WriteHeader(statusCode int) {
 }
 
 func (c *compressWriter) Close() error {
-	return c.cw.Close()
+	var err error
+	if c.cw != nil{
+		err = c.cw.Close()
+	}
+
+	return err
 }
 
 type compressReader struct {
