@@ -24,7 +24,11 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 }
 
 func (c *compressWriter) Write(data []byte) (int, error) {
-	return c.cw.Write(data)
+	ct := c.w.Header().Get("Content-Type")
+	if isApplicableContentType(ct) {
+		return c.cw.Write(data)
+	}
+	return c.w.Write(data)
 }
 
 func (c *compressWriter) Header() http.Header {
@@ -32,7 +36,10 @@ func (c *compressWriter) Header() http.Header {
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	c.w.Header().Set("Content-Encoding", string(c.cType))
+	ct := c.w.Header().Get("Content-Type")
+	if isApplicableContentType(ct) {
+		c.w.Header().Set("Content-Encoding", string(c.cType))
+	}
 	c.w.WriteHeader(statusCode)
 }
 
@@ -71,7 +78,7 @@ func isApplicableContentType(contentType string) bool {
 	applicable := [2]string{"application/json", "text/html"}
 	contentType = strings.ToLower(contentType)
 	for _, ct := range applicable {
-		if contentType == ct {
+		if strings.Contains(contentType, ct) {
 			return true
 		}
 	}
@@ -83,8 +90,7 @@ func Compression(next http.Handler) http.Handler {
 		writer := w
 		acceptEncoding := r.Header.Get("Accept-Encoding")
 		supportsCompr := strings.Contains(acceptEncoding, config.SelectedCompressionType)
-		isApplicableCT := isApplicableContentType(r.Header.Get("Content-Type"))
-		if supportsCompr && isApplicableCT{
+		if supportsCompr {
 			cw := newCompressWriter(w)
 			writer = cw
 			defer cw.Close()

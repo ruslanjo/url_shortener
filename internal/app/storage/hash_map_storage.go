@@ -33,7 +33,7 @@ func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 		s.data = make(map[string]string)
 	}
 	s.data[shortLink] = fullLink
-	url := disk.URLSchema{ShortLink: shortLink, FullLink: fullLink}
+	url := disk.URLModel{ShortLink: shortLink, FullLink: fullLink}
 
 	if s.diskStorage == nil{ // Мб здесь как-то по другому лучше nil-интерфейс обрабатывать?
 		return nil

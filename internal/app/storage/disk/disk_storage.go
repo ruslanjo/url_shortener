@@ -6,14 +6,14 @@ import (
 	"sync"
 )
 
-type URLSchema struct {
+type URLModel struct {
 	FullLink  string `json:"full_link"`
 	ShortLink string `json:"short_link"`
 }
 
 type URLStorage interface {
-	Persist(URLSchema) error
-	ReadAll() ([]URLSchema, error)
+	Persist(URLModel) error
+	ReadAll() ([]URLModel, error)
 }
 
 type DiskStorage struct {

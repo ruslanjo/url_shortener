@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -14,7 +13,7 @@ import (
 	"github.com/ruslanjo/url_shortener/internal/logger"
 )
 
-func setUpRouter(storage storage.AbstractStorage) *chi.Mux {
+func setUpRouter(storage storage.Storage) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestLogger)
 	r.Use(middleware.Compression)
@@ -33,8 +32,8 @@ func main() {
 
 	ds := disk.DiskStorage{Path: config.LocalStoragePath}
 	urlDs := disk.NewURLDiskStorage(ds)
+	logger.Log.Infoln(config.LocalStoragePath)
 	storage := storage.NewHashMapStorage(urlDs)
-	fmt.Print(config.LocalStoragePath)
 	if err := storage.LoadFromDisk(); err != nil {
 		log.Fatal(err)
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/ruslanjo/url_shortener/internal/core"
 )
 
-func CreateShortURLHandler(storage storage.AbstractStorage) http.HandlerFunc {
+func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		data, err := io.ReadAll(req.Body)
 		if err != nil {
@@ -35,7 +35,7 @@ func CreateShortURLHandler(storage storage.AbstractStorage) http.HandlerFunc {
 	}
 }
 
-func GetURLByShortLinkHandler(storage storage.AbstractStorage) http.HandlerFunc {
+func GetURLByShortLinkHandler(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 
 		shortURL := chi.URLParam(req, "shortURL")
@@ -48,7 +48,7 @@ func GetURLByShortLinkHandler(storage storage.AbstractStorage) http.HandlerFunc 
 	}
 }
 
-func GetShortURLJSONHandler(storage storage.AbstractStorage) http.HandlerFunc {
+func GetShortURLJSONHandler(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			input struct {
@@ -73,18 +73,20 @@ func GetShortURLJSONHandler(storage storage.AbstractStorage) http.HandlerFunc {
 			"%s/%s",
 			config.BaseServerReturnAddr, shortURL,
 		)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
 
-		response, err := json.Marshal(output)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
 		err = storage.AddShortURL(shortURL, input.URL)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		response, err := json.Marshal(output)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
 		w.Write(response)
 
 	}

@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,8 +14,11 @@ import (
 
 func stubHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
 		w.Write([]byte(`{"random": "response"}`))
 	}
+
 	return http.HandlerFunc(fn)
 
 }
@@ -40,16 +44,17 @@ func TestGzipCompression(t *testing.T) {
 
 		r := httptest.NewRequest("POST", srv.URL, buf)
 		r.RequestURI = ""
-		r.Header.Set("Accept-Encoding", "")
-		r.Header.Set("Content-Encoding", "gzip")
+		r.Header.Set("Accept-Encoding", "gzip")
+		r.Header.Set("Content-Encoding", "application/json")
 
 		resp, err := http.DefaultClient.Do(r)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-
 		defer resp.Body.Close()
-
-		b, err := io.ReadAll(resp.Body)
+		fmt.Println(resp.Header)
+		zr, err := gzip.NewReader(resp.Body)
+		require.NoError(t, err)
+		b, err := io.ReadAll(zr)
 		require.NoError(t, err)
 		require.JSONEq(t, successBody, string(b))
 	})

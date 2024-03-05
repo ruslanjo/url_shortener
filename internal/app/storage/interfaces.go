@@ -8,7 +8,7 @@ var (
 
 
 
-type AbstractStorage interface {
+type Storage interface {
 	GetURLByShortLink(shortLink string) (string, error)
 	AddShortURL(shortLink string, fullLink string) error
 }
