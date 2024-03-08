@@ -16,18 +16,18 @@ type URLStorage interface {
 	ReadAll() ([]URLModel, error)
 }
 
-type DiskStorage struct {
-	Path string
+type diskStorage struct {
+	path string
 }
 
-func (d DiskStorage) readAll() ([]byte, error) {
+func (d diskStorage) readAll() ([]byte, error) {
 	var data []byte
 
 	m := sync.Mutex{}
 	m.Lock()
 	defer m.Unlock()
 
-	f, err := os.OpenFile(d.Path, os.O_CREATE|os.O_RDONLY, 0666)
+	f, err := os.OpenFile(d.path, os.O_CREATE|os.O_RDONLY, 0666)
 	if err != nil {
 		return nil, err
 	}
@@ -39,11 +39,11 @@ func (d DiskStorage) readAll() ([]byte, error) {
 	return data, nil
 }
 
-func (d DiskStorage) persist(data []byte) error {
+func (d diskStorage) persist(data []byte) error {
 	m := sync.Mutex{}
 	m.Lock()
 	defer m.Unlock()
-	f, err := os.OpenFile(d.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	f, err := os.OpenFile(d.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return err
 	}

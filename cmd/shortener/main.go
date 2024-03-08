@@ -29,10 +29,7 @@ func setUpRouter(storage storage.Storage) *chi.Mux {
 func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
-
-	ds := disk.DiskStorage{Path: config.LocalStoragePath}
-	urlDs := disk.NewURLDiskStorage(ds)
-	logger.Log.Infoln(config.LocalStoragePath)
+	urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
 	storage := storage.NewHashMapStorage(urlDs)
 	if err := storage.LoadFromDisk(); err != nil {
 		log.Fatal(err)

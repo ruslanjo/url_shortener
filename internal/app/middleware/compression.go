@@ -10,9 +10,10 @@ import (
 )
 
 type compressWriter struct {
-	w     http.ResponseWriter
-	cw    *gzip.Writer
-	cType string
+	w                   http.ResponseWriter
+	cw                  *gzip.Writer
+	cType               string
+	wroteEncodingHeader bool
 }
 
 func newCompressWriter(w http.ResponseWriter) *compressWriter {
@@ -32,7 +33,16 @@ func (c *compressWriter) Write(data []byte) (int, error) {
 	ct := c.w.Header().Get("Content-Type")
 	if isApplicableContentType(ct) {
 		c.initCompressor()
-		return c.cw.Write(data)
+		lenBuf, err := c.cw.Write(data)
+		if err != nil {
+			return 0, err
+		}
+		if !c.wroteEncodingHeader {
+			c.w.Header().Set("Content-Encoding", string(c.cType))
+			c.wroteEncodingHeader = true
+		}
+		return lenBuf, err
+
 	}
 	return c.w.Write(data)
 }
@@ -42,16 +52,20 @@ func (c *compressWriter) Header() http.Header {
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	ct := c.w.Header().Get("Content-Type")
-	if isApplicableContentType(ct) {
-		c.w.Header().Set("Content-Encoding", string(c.cType))
+	if !c.wroteEncodingHeader {
+		ct := c.w.Header().Get("Content-Type")
+		if isApplicableContentType(ct) {
+			c.w.Header().Set("Content-Encoding", string(c.cType))
+		}
+		c.wroteEncodingHeader = true
 	}
+
 	c.w.WriteHeader(statusCode)
 }
 
 func (c *compressWriter) Close() error {
 	var err error
-	if c.cw != nil{
+	if c.cw != nil {
 		err = c.cw.Close()
 	}
 

@@ -7,10 +7,11 @@ import (
 )
 
 type JSONURLDiskStorage struct {
-	diskStorage DiskStorage
+	diskStorage diskStorage
 }
 
-func NewURLDiskStorage(ds DiskStorage) *JSONURLDiskStorage {
+func NewURLDiskStorage(path string) *JSONURLDiskStorage {
+	ds := diskStorage{path}
 	return &JSONURLDiskStorage{diskStorage: ds}
 }
 
