@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang/mock/gomock"
 	"github.com/ruslanjo/url_shortener/internal/app/storage"
+	"github.com/ruslanjo/url_shortener/internal/app/storage/mocks"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,10 +76,12 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 func TestGetURLByShortLinkHandler(t *testing.T) {
 
-	mockDao := &storage.HashMapStorage{}
-	mockDao.InitStorage(
-		map[string]string{"6YGS4ZUFRyR2pJ8QOIQoqw==": "https://ya.ru"},
-	)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockStorage := mocks.NewMockStorage(ctrl)
+	mockStorage.EXPECT().GetURLByShortLink("6YGS4ZUFRyR2pJ8QOIQoqw==").Return("https://ya.ru", nil)
+	mockStorage.EXPECT().GetURLByShortLink(gomock.Any()).Return("", storage.ErrURLMappingNotFound)
 
 	testSuits := TestMeta{
 		{
@@ -108,7 +112,7 @@ func TestGetURLByShortLinkHandler(t *testing.T) {
 
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rtcx))
 
-			GetURLByShortLinkHandler(mockDao)(w, r)
+			GetURLByShortLinkHandler(mockStorage)(w, r)
 
 			res := w.Result()
 

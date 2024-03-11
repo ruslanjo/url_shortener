@@ -45,11 +45,6 @@ func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 	return nil
 }
 
-func (s *HashMapStorage) InitStorage(data map[string]string) {
-	// Is needed for unit-tests
-	s.data = data
-}
-
 func (s *HashMapStorage) LoadFromDisk() error {
 	d := make(map[string]string)
 	diskData, err := s.diskStorage.ReadAll()
