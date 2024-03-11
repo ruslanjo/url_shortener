@@ -15,11 +15,13 @@ func InitPostgres(db *sql.DB) {
 		CONSTRAINT url_uniq UNIQUE (url),
 		CONSTRAINT alias_uniq UNIQUE (alias)
 	);
+	commit;
 	`
 	if _, err := db.Exec(q); err != nil {
 		log.Fatal(
 			fmt.Errorf("error while creating DB table: %w", err),
 		)
 	}
+
 
 }
