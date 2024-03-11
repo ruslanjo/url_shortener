@@ -28,24 +28,29 @@ func setUpRouter(storage storage.Storage, db *sql.DB) *chi.Mux {
 	return r
 }
 
-func initDB() *sql.DB {
+func initStorage() (storage.Storage, *sql.DB) {
 	if config.DSN == "" {
-		return nil
+		urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
+		storage := storage.NewHashMapStorage(urlDs)
+		if err := storage.LoadFromDisk(); err != nil {
+			log.Fatal(err)
+		}
+		logger.Log.Infoln("storage: memory and disk")
+		return storage, nil
 	}
-	return config.MustLoadDB()
+	db := config.MustLoadDB()
+	dbStorage := storage.NewPostgresStorage(db)
+	logger.Log.Infoln("storage: Postgres")
+	return &dbStorage, db
 }
 
 func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
 
-	db := initDB()
-	urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
-	storage := storage.NewHashMapStorage(urlDs)
-	if err := storage.LoadFromDisk(); err != nil {
-		log.Fatal(err)
-	}
-	r := setUpRouter(storage, db)
+	storage, dbDriver := initStorage()
+
+	r := setUpRouter(storage, dbDriver)
 	logger.Log.Infoln("Starting server")
 	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }
