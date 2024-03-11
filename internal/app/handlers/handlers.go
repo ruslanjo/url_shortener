@@ -100,7 +100,11 @@ func PingDB(db *sql.DB) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 
-		if err := db.PingContext(ctx); err != nil{
+		if db == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if err := db.PingContext(ctx); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

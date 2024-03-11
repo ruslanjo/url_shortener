@@ -28,11 +28,18 @@ func setUpRouter(storage storage.Storage, db *sql.DB) *chi.Mux {
 	return r
 }
 
+func initDB() *sql.DB {
+	if config.DSN == "" {
+		return nil
+	}
+	return config.MustLoadDB()
+}
+
 func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
 
-	db := config.MustLoadDB()
+	db := initDB()
 	urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
 	storage := storage.NewHashMapStorage(urlDs)
 	if err := storage.LoadFromDisk(); err != nil {
