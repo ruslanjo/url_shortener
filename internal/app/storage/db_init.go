@@ -1,13 +1,12 @@
 package storage
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
 )
 
-func InitPostgres(ctx context.Context, db *sql.DB) {
+func InitPostgres(db *sql.DB) {
 	q := `
 	CREATE TABLE IF NOT EXISTS urls(
 		id serial CONSTRAINT urls_pl PRIMARY KEY,
@@ -17,7 +16,7 @@ func InitPostgres(ctx context.Context, db *sql.DB) {
 		CONSTRAINT alias_uniq UNIQUE (alias)
 	);
 	`
-	if _, err := db.ExecContext(ctx, q); err != nil {
+	if _, err := db.Exec(q); err != nil {
 		log.Fatal(
 			fmt.Errorf("error while creating DB table: %w", err),
 		)

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ruslanjo/url_shortener/internal/app/handlers"
@@ -43,9 +41,7 @@ func initStorage() (storage.Storage, *sql.DB) {
 
 	db := config.MustLoadDB()
 	dbStorage := storage.NewPostgresStorage(db)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	storage.InitPostgres(ctx, db)
+	storage.InitPostgres(db)
 	logger.Log.Infoln("storage: Postgres")
 	return &dbStorage, db
 }
