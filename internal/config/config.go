@@ -22,3 +22,7 @@ const (
 const (
 	SelectedCompressionType string = GZIP
 )
+
+const (
+	URLBatchSize int = 1_000
+)

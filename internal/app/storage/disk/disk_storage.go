@@ -4,6 +4,8 @@ import (
 	"io"
 	"os"
 	"sync"
+
+	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
 )
 
 type URLModel struct {
@@ -13,6 +15,7 @@ type URLModel struct {
 
 type URLStorage interface {
 	Persist(URLModel) error
+	PersistBatch([]models.URLBatch) error
 	ReadAll() ([]URLModel, error)
 }
 
@@ -56,5 +59,4 @@ func (d diskStorage) persist(data []byte) error {
 		return err
 	}
 	return nil
-
 }

@@ -5,9 +5,11 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	models "github.com/ruslanjo/url_shortener/internal/app/storage/models"
 )
 
 // MockStorage is a mock of Storage interface.
@@ -60,4 +62,18 @@ func (m *MockStorage) GetURLByShortLink(arg0 string) (string, error) {
 func (mr *MockStorageMockRecorder) GetURLByShortLink(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURLByShortLink", reflect.TypeOf((*MockStorage)(nil).GetURLByShortLink), arg0)
+}
+
+// SaveURLBatched mocks base method.
+func (m *MockStorage) SaveURLBatched(arg0 context.Context, arg1 []models.URLBatch) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveURLBatched", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveURLBatched indicates an expected call of SaveURLBatched.
+func (mr *MockStorageMockRecorder) SaveURLBatched(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveURLBatched", reflect.TypeOf((*MockStorage)(nil).SaveURLBatched), arg0, arg1)
 }
