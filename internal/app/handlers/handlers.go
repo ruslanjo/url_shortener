@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ruslanjo/url_shortener/internal/app/storage"
+	storageP "github.com/ruslanjo/url_shortener/internal/app/storage"
 	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/ruslanjo/url_shortener/internal/core"
@@ -18,6 +20,7 @@ import (
 
 func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		var statusCode int = http.StatusCreated
 		data, err := io.ReadAll(req.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -28,13 +31,16 @@ func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
 		encodedURL := core.GenerateShortURL(rawURL)
 
 		err = storage.AddShortURL(encodedURL, rawURL)
-		if err != nil {
+		if err != nil && !errors.Is(err, storageP.ErrIntegityViolation) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		if errors.Is(err, storageP.ErrIntegityViolation) {
+			statusCode = http.StatusConflict
+		}
 
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(statusCode)
 		w.Write([]byte(fmt.Sprintf("%s/%s", config.BaseServerReturnAddr, encodedURL)))
 	}
 }
@@ -61,6 +67,7 @@ func GetShortURLJSONHandler(storage storage.Storage) http.HandlerFunc {
 			output struct {
 				URL string `json:"result"`
 			}
+			statusCode int = http.StatusCreated
 		)
 
 		err := json.NewDecoder(r.Body).Decode(&input)
@@ -79,19 +86,21 @@ func GetShortURLJSONHandler(storage storage.Storage) http.HandlerFunc {
 		)
 
 		err = storage.AddShortURL(shortURL, input.URL)
-		if err != nil {
+		if err != nil && !errors.Is(err, storageP.ErrIntegityViolation) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
+		if errors.Is(err, storageP.ErrIntegityViolation) {
+			statusCode = http.StatusConflict
+		}
 		response, err := json.Marshal(output)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(statusCode)
 		w.Write(response)
 
 	}

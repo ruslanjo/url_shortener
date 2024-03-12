@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrURLMappingNotFound = errors.New("URL not found")
+	ErrIntegityViolation = errors.New("db constrains violation")
 )
 
 type Storage interface {
