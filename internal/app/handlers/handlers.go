@@ -12,13 +12,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ruslanjo/url_shortener/internal/app/storage"
-	storageP "github.com/ruslanjo/url_shortener/internal/app/storage"
 	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/ruslanjo/url_shortener/internal/core"
 )
 
-func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
+func CreateShortURLHandler(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var statusCode int = http.StatusCreated
 		data, err := io.ReadAll(req.Body)
@@ -30,12 +29,12 @@ func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
 		rawURL := string(data)
 		encodedURL := core.GenerateShortURL(rawURL)
 
-		err = storage.AddShortURL(encodedURL, rawURL)
-		if err != nil && !errors.Is(err, storageP.ErrIntegityViolation) {
+		err = store.AddShortURL(encodedURL, rawURL)
+		if err != nil && !errors.Is(err, storage.ErrIntegityViolation) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if errors.Is(err, storageP.ErrIntegityViolation) {
+		if errors.Is(err, storage.ErrIntegityViolation) {
 			statusCode = http.StatusConflict
 		}
 
@@ -45,11 +44,11 @@ func CreateShortURLHandler(storage storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetURLByShortLinkHandler(storage storage.Storage) http.HandlerFunc {
+func GetURLByShortLinkHandler(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 
 		shortURL := chi.URLParam(req, "shortURL")
-		full, err := storage.GetURLByShortLink(shortURL)
+		full, err := store.GetURLByShortLink(shortURL)
 		if err != nil {
 			http.Error(w, "Not found", http.StatusBadRequest)
 			return
@@ -58,7 +57,7 @@ func GetURLByShortLinkHandler(storage storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetShortURLJSONHandler(storage storage.Storage) http.HandlerFunc {
+func GetShortURLJSONHandler(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			input struct {
@@ -85,13 +84,13 @@ func GetShortURLJSONHandler(storage storage.Storage) http.HandlerFunc {
 			config.BaseServerReturnAddr, shortURL,
 		)
 
-		err = storage.AddShortURL(shortURL, input.URL)
-		if err != nil && !errors.Is(err, storageP.ErrIntegityViolation) {
+		err = store.AddShortURL(shortURL, input.URL)
+		if err != nil && !errors.Is(err, storage.ErrIntegityViolation) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if errors.Is(err, storageP.ErrIntegityViolation) {
+		if errors.Is(err, storage.ErrIntegityViolation) {
 			statusCode = http.StatusConflict
 		}
 		response, err := json.Marshal(output)
@@ -124,7 +123,7 @@ func PingDBHandler(db *sql.DB) http.HandlerFunc {
 	return http.HandlerFunc(fn)
 }
 
-func BatchShortenHandler(storage storage.Storage) http.HandlerFunc {
+func BatchShortenHandler(store storage.Storage) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var inputBatch []models.URLBatch
 
@@ -140,7 +139,7 @@ func BatchShortenHandler(storage storage.Storage) http.HandlerFunc {
 		for i := range inputBatch {
 			inputBatch[i].ShortURL = core.GenerateShortURL(inputBatch[i].OriginalURL)
 		}
-		if err := storage.SaveURLBatched(r.Context(), inputBatch); err != nil {
+		if err := store.SaveURLBatched(r.Context(), inputBatch); err != nil {
 			http.Error(w, fmt.Sprintf("error while saving data: %v", err), http.StatusBadRequest)
 			return
 		}
