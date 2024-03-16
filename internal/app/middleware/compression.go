@@ -33,13 +33,15 @@ func (c *compressWriter) Write(data []byte) (int, error) {
 	ct := c.w.Header().Get("Content-Type")
 	if isApplicableContentType(ct) {
 		c.initCompressor()
-		lenBuf, err := c.cw.Write(data)
-		if err != nil {
-			return 0, err
-		}
+
 		if !c.wroteEncodingHeader {
 			c.w.Header().Set("Content-Encoding", string(c.cType))
 			c.wroteEncodingHeader = true
+		}
+
+		lenBuf, err := c.cw.Write(data)
+		if err != nil {
+			return 0, err
 		}
 		return lenBuf, err
 
