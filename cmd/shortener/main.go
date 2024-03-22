@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -29,7 +28,7 @@ func setUpRouter(storage storage.Storage) *chi.Mux {
 	return r
 }
 
-func initStorage() (storage.Storage, *sql.DB) {
+func initStorage() storage.Storage {
 	if config.DSN == "" {
 		urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
 		storage := storage.NewHashMapStorage(urlDs)
@@ -37,21 +36,21 @@ func initStorage() (storage.Storage, *sql.DB) {
 			log.Fatal(err)
 		}
 		logger.Log.Infoln("storage: memory and disk")
-		return storage, nil
+		return storage
 	}
 
-	db := config.MustLoadDB()
-	dbStorage := storage.NewPostgresStorage(db)
-	storage.InitPostgres(db)
+	dbDriver := config.MustLoadDB()
+	dbStorage := storage.NewPostgresStorage(dbDriver)
+	storage.InitPostgres(dbDriver)
 	logger.Log.Infoln("storage: Postgres")
-	return &dbStorage, db
+	return &dbStorage
 }
 
 func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
 
-	storage, dbDriver := initStorage()
+	storage := initStorage()
 
 	r := setUpRouter(storage)
 	logger.Log.Infoln("Starting server")
