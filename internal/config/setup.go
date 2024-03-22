@@ -1,8 +1,13 @@
 package config
 
 import (
+	"context"
+	"database/sql"
 	"flag"
 	"os"
+	"time"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func parseFlags() {
@@ -10,6 +15,7 @@ func parseFlags() {
 	flag.StringVar(&Protocol, "p", "http", "Protocol to run server")
 	flag.StringVar(&BaseServerReturnAddr, "b", "http://localhost:8080", "Base addres of URL shortener")
 	flag.StringVar(&LocalStoragePath, "f", "/tmp/short-url-db.json", "Local DB addr")
+	flag.StringVar(&DSN, "d", "", "Database connection string")
 	flag.Parse()
 }
 
@@ -26,9 +32,25 @@ func ConfigureApp() {
 		"RUN_ADDR":          &ServerAddr,
 		"BASE_URL":          &BaseServerReturnAddr,
 		"FILE_STORAGE_PATH": &LocalStoragePath,
+		"DATABASE_DSN":      &DSN,
 	}
 
 	for k, v := range envs {
 		setEnvsToConfig(k, v)
 	}
+}
+
+func MustLoadDB() *sql.DB {
+	db, err := sql.Open("pgx", DSN)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		panic(err)
+	}
+	return db
 }

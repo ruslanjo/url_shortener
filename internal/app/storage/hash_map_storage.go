@@ -1,7 +1,11 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/ruslanjo/url_shortener/internal/app/storage/disk"
+	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
+	"github.com/ruslanjo/url_shortener/internal/config"
 )
 
 type HashMapStorage struct {
@@ -35,7 +39,7 @@ func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 	s.data[shortLink] = fullLink
 	url := disk.URLModel{ShortLink: shortLink, FullLink: fullLink}
 
-	if s.diskStorage == nil{ // Мб здесь как-то по другому лучше nil-интерфейс обрабатывать?
+	if s.diskStorage == nil { // Мб здесь как-то по другому лучше nil-интерфейс обрабатывать?
 		return nil
 	}
 	if err := s.diskStorage.Persist(url); err != nil {
@@ -45,9 +49,31 @@ func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 	return nil
 }
 
-func (s *HashMapStorage) InitStorage(data map[string]string) {
-	// Is needed for unit-tests
-	s.data = data
+func (s *HashMapStorage) SaveURLBatched(ctx context.Context, data []models.URLBatch) error {
+	// context not used in hashmap storage
+
+	for curPtr := 0; curPtr < len(data); curPtr += config.URLBatchSize {
+		upperBound := curPtr+config.URLBatchSize
+		if upperBound > len(data){
+			upperBound = len(data)
+		}
+		batch := data[curPtr : upperBound]
+
+		if err := s.diskStorage.PersistBatch(batch); err != nil {
+			return err
+		}
+
+		for i := 0; i < len(batch); i++ {
+			short, long := batch[i].ShortURL, batch[i].OriginalURL
+			s.data[short] = long
+		}
+	}
+	return nil
+}
+
+
+func (s *HashMapStorage) PingContext (ctx context.Context) error {
+	return nil
 }
 
 func (s *HashMapStorage) LoadFromDisk() error {

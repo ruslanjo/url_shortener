@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
 )
 
 type JSONURLDiskStorage struct {
@@ -24,6 +26,40 @@ func (m JSONURLDiskStorage) Persist(entity URLModel) error {
 		return err
 	}
 	return nil
+}
+
+func (m JSONURLDiskStorage) PersistBatch(data []models.URLBatch) error {
+	bytesData, err := m.prepareBatch(data)
+	if err != nil {
+		return err
+	}
+
+	if err = m.diskStorage.persist(bytesData); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m JSONURLDiskStorage) prepareBatch(data []models.URLBatch) ([]byte, error) {
+	var out []byte
+
+	for i, ent := range data {
+		m := URLModel{
+			FullLink:  ent.OriginalURL,
+			ShortLink: ent.ShortURL,
+		}
+		marsh, err := json.Marshal(m)
+		if err != nil {
+			return nil, err
+		}
+
+		if i != len(data)-1 {
+			marsh = append(marsh, '\n')
+		}
+
+		out = append(out, marsh...)
+	}
+	return out, nil
 }
 
 func (m JSONURLDiskStorage) ReadAll() ([]URLModel, error) {

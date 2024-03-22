@@ -12,6 +12,7 @@ var (
 	ServerAddr           string = fmt.Sprintf("%s:%d", DefaultServerHost, DefaultServerPort)
 	BaseServerReturnAddr string = fmt.Sprintf("%s://%s", Protocol, ServerAddr)
 	LocalStoragePath     string
+	DSN                  string
 )
 
 const (
@@ -20,4 +21,8 @@ const (
 
 const (
 	SelectedCompressionType string = GZIP
+)
+
+const (
+	URLBatchSize int = 1_000
 )
