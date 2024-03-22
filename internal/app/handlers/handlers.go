@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -105,16 +104,12 @@ func GetShortURLJSONHandler(store storage.Storage) http.HandlerFunc {
 	}
 }
 
-func PingDBHandler(db *sql.DB) http.HandlerFunc {
+func PingDBHandler(store storage.Storage) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if db == nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if err := db.PingContext(ctx); err != nil {
+		if err := store.PingContext(ctx); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

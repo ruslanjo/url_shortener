@@ -24,7 +24,7 @@ func setUpRouter(storage storage.Storage, db *sql.DB) *chi.Mux {
 		r.Get("/{shortURL}", handlers.GetURLByShortLinkHandler(storage))
 		r.Post("/api/shorten", handlers.GetShortURLJSONHandler(storage))
 		r.Post("/api/shorten/batch", handlers.BatchShortenHandler(storage))
-		r.Get("/ping", handlers.PingDBHandler(db))
+		r.Get("/ping", handlers.PingDBHandler(storage))
 	})
 	return r
 }

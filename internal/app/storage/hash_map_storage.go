@@ -71,6 +71,11 @@ func (s *HashMapStorage) SaveURLBatched(ctx context.Context, data []models.URLBa
 	return nil
 }
 
+
+func (s *HashMapStorage) PingContext (ctx context.Context) error {
+	return nil
+}
+
 func (s *HashMapStorage) LoadFromDisk() error {
 	d := make(map[string]string)
 	diskData, err := s.diskStorage.ReadAll()

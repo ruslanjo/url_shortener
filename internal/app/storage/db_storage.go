@@ -64,6 +64,11 @@ func (pg *postgresStorage) SaveURLBatched(ctx context.Context, data []models.URL
 	return nil
 }
 
+
+func (pg *postgresStorage) PingContext (ctx context.Context) error {
+	return pg.db.PingContext(ctx)
+}
+
 func handleConstraintViolation(err error) error {
 	var pgErr *pgconn.PgError
 
