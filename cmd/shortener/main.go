@@ -14,7 +14,7 @@ import (
 	"github.com/ruslanjo/url_shortener/internal/logger"
 )
 
-func setUpRouter(storage storage.Storage, db *sql.DB) *chi.Mux {
+func setUpRouter(storage storage.Storage) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestLogger)
 	r.Use(middleware.Compression)
@@ -53,7 +53,7 @@ func main() {
 
 	storage, dbDriver := initStorage()
 
-	r := setUpRouter(storage, dbDriver)
+	r := setUpRouter(storage)
 	logger.Log.Infoln("Starting server")
 	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }
