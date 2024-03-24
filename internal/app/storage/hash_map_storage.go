@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ruslanjo/url_shortener/internal/app/storage/disk"
 	"github.com/ruslanjo/url_shortener/internal/app/storage/models"
@@ -32,7 +33,12 @@ func (s *HashMapStorage) GetURLByShortLink(shortLink string) (string, error) {
 	}
 }
 
-func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
+func (s *HashMapStorage) AddShortURL(
+	shortLink string,
+	fullLink string,
+	UUID string,
+) error {
+	// UUID not used in hashmap storage
 	if s.data == nil {
 		s.data = make(map[string]string)
 	}
@@ -49,15 +55,19 @@ func (s *HashMapStorage) AddShortURL(shortLink string, fullLink string) error {
 	return nil
 }
 
-func (s *HashMapStorage) SaveURLBatched(ctx context.Context, data []models.URLBatch) error {
-	// context not used in hashmap storage
+func (s *HashMapStorage) SaveURLBatched(
+	ctx context.Context,
+	data []models.URLBatch,
+	UUID string,
+) error {
+	// context and UUID not used in hashmap storage
 
 	for curPtr := 0; curPtr < len(data); curPtr += config.URLBatchSize {
-		upperBound := curPtr+config.URLBatchSize
-		if upperBound > len(data){
+		upperBound := curPtr + config.URLBatchSize
+		if upperBound > len(data) {
 			upperBound = len(data)
 		}
-		batch := data[curPtr : upperBound]
+		batch := data[curPtr:upperBound]
 
 		if err := s.diskStorage.PersistBatch(batch); err != nil {
 			return err
@@ -71,8 +81,11 @@ func (s *HashMapStorage) SaveURLBatched(ctx context.Context, data []models.URLBa
 	return nil
 }
 
+func (s *HashMapStorage) GetUserURLs(UUID string) ([]models.URL, error){
+	return nil, fmt.Errorf("not implemented in hashmap storage")
+}
 
-func (s *HashMapStorage) PingContext (ctx context.Context) error {
+func (s *HashMapStorage) PingContext(ctx context.Context) error {
 	return nil
 }
 
