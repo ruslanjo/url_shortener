@@ -2,10 +2,14 @@ package models
 
 import "encoding/json"
 
+type URL struct {
+	OriginalURL string `json:"original_url"`
+	ShortURL    string `json:"short_url"`
+}
+
 type URLBatch struct {
 	CorrelationID string `json:"correlation_id"`
-	OriginalURL   string `json:"original_url"`
-	ShortURL      string
+	URL
 }
 
 func (u *URLBatch) MarshalJSON() ([]byte, error) {

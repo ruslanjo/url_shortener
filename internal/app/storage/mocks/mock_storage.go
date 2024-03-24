@@ -36,17 +36,17 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // AddShortURL mocks base method.
-func (m *MockStorage) AddShortURL(arg0, arg1 string) error {
+func (m *MockStorage) AddShortURL(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddShortURL", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddShortURL", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddShortURL indicates an expected call of AddShortURL.
-func (mr *MockStorageMockRecorder) AddShortURL(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) AddShortURL(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShortURL", reflect.TypeOf((*MockStorage)(nil).AddShortURL), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShortURL", reflect.TypeOf((*MockStorage)(nil).AddShortURL), arg0, arg1, arg2)
 }
 
 // GetURLByShortLink mocks base method.
@@ -64,6 +64,21 @@ func (mr *MockStorageMockRecorder) GetURLByShortLink(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURLByShortLink", reflect.TypeOf((*MockStorage)(nil).GetURLByShortLink), arg0)
 }
 
+// GetUserURLs mocks base method.
+func (m *MockStorage) GetUserURLs(arg0 string) ([]models.URL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserURLs", arg0)
+	ret0, _ := ret[0].([]models.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserURLs indicates an expected call of GetUserURLs.
+func (mr *MockStorageMockRecorder) GetUserURLs(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserURLs", reflect.TypeOf((*MockStorage)(nil).GetUserURLs), arg0)
+}
+
 // PingContext mocks base method.
 func (m *MockStorage) PingContext(arg0 context.Context) error {
 	m.ctrl.T.Helper()
@@ -79,15 +94,15 @@ func (mr *MockStorageMockRecorder) PingContext(arg0 interface{}) *gomock.Call {
 }
 
 // SaveURLBatched mocks base method.
-func (m *MockStorage) SaveURLBatched(arg0 context.Context, arg1 []models.URLBatch) error {
+func (m *MockStorage) SaveURLBatched(arg0 context.Context, arg1 []models.URLBatch, arg2 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveURLBatched", arg0, arg1)
+	ret := m.ctrl.Call(m, "SaveURLBatched", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveURLBatched indicates an expected call of SaveURLBatched.
-func (mr *MockStorageMockRecorder) SaveURLBatched(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) SaveURLBatched(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveURLBatched", reflect.TypeOf((*MockStorage)(nil).SaveURLBatched), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveURLBatched", reflect.TypeOf((*MockStorage)(nil).SaveURLBatched), arg0, arg1, arg2)
 }
