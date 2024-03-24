@@ -207,6 +207,12 @@ func GetUserURLsHandler(
 			w.WriteHeader(http.StatusNoContent)
 			return
 		} 
+		for i := range urls {
+			urls[i].ShortURL = fmt.Sprintf(
+				"%s/%s",
+				config.BaseServerReturnAddr, urls[i].ShortURL,
+			)
+		}
 
 		response, err := json.Marshal(urls)
 		if err != nil{
