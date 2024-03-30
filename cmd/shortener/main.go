@@ -26,8 +26,8 @@ func setUpRouter(storage storage.Storage, tokenGen mw.TokenGenerator) *chi.Mux {
 		r.Post("/batch", mw.Signup(h.BatchShortenHandler(storage), tokenGen))
 	})
 	r.Route("/api/user/urls", func(r chi.Router) {
-		r.Get("/api/user/urls", h.GetUserURLsHandler(storage, tokenGen))
-		r.Delete("/api/user/urls", mw.Signup(h.DeleteURLsHandler(storage), tokenGen))
+		r.Get("/", h.GetUserURLsHandler(storage, tokenGen))
+		r.Delete("/", mw.Signup(h.DeleteURLsHandler(storage), tokenGen))
 	})
 	return r
 }
