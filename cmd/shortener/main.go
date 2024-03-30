@@ -25,6 +25,7 @@ func setUpRouter(storage storage.Storage, tokenGen mw.TokenGenerator) *chi.Mux {
 		r.Post("/api/shorten/batch", mw.Signup(h.BatchShortenHandler(storage), tokenGen))
 		r.Get("/ping", h.PingDBHandler(storage))
 		r.Get("/api/user/urls", h.GetUserURLsHandler(storage, tokenGen))
+		r.Delete("/api/user/urls", mw.Signup(h.DeleteURLsHandler(storage), tokenGen))
 	})
 	return r
 }

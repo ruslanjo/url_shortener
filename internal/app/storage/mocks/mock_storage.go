@@ -49,6 +49,20 @@ func (mr *MockStorageMockRecorder) AddShortURL(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShortURL", reflect.TypeOf((*MockStorage)(nil).AddShortURL), arg0, arg1, arg2)
 }
 
+// DeleteURLs mocks base method.
+func (m *MockStorage) DeleteURLs(arg0 context.Context, arg1 []string, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteURLs", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteURLs indicates an expected call of DeleteURLs.
+func (mr *MockStorageMockRecorder) DeleteURLs(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteURLs", reflect.TypeOf((*MockStorage)(nil).DeleteURLs), arg0, arg1, arg2)
+}
+
 // GetURLByShortLink mocks base method.
 func (m *MockStorage) GetURLByShortLink(arg0 string) (string, error) {
 	m.ctrl.T.Helper()

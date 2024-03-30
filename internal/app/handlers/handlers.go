@@ -53,9 +53,14 @@ func GetURLByShortLinkHandler(store storage.Storage) http.HandlerFunc {
 		shortURL := chi.URLParam(req, "shortURL")
 		full, err := store.GetURLByShortLink(shortURL)
 		if err != nil {
+			if errors.Is(err, storage.ErrEntityDeleted) {
+				http.Error(w, err.Error(), http.StatusGone)
+				return
+			}
 			http.Error(w, "Not found", http.StatusBadRequest)
 			return
 		}
+
 		http.Redirect(w, req, full, http.StatusTemporaryRedirect)
 	}
 }
@@ -198,15 +203,15 @@ func GetUserURLsHandler(
 		}
 
 		urls, err := store.GetUserURLs(claims.UserID)
-		if err != nil{
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if len(urls) == 0{
+		if len(urls) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
-		} 
+		}
 		for i := range urls {
 			urls[i].ShortURL = fmt.Sprintf(
 				"%s/%s",
@@ -215,13 +220,34 @@ func GetUserURLsHandler(
 		}
 
 		response, err := json.Marshal(urls)
-		if err != nil{
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
+	}
+	return fn
+}
+
+func DeleteURLsHandler(store storage.Storage) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		var shortURLs []string
+
+		userID := r.Header.Get(middleware.UserIDHeader)
+		err := json.NewDecoder(r.Body).Decode(&shortURLs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = store.DeleteURLs(context.Background(), shortURLs, userID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
 	}
 	return fn
 }

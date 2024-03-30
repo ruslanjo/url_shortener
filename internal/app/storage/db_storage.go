@@ -21,14 +21,22 @@ type postgresStorage struct {
 
 func (pg *postgresStorage) GetURLByShortLink(shortLink string) (string, error) {
 	row := pg.db.QueryRow(
-		"select url from urls where alias=$1", shortLink,
+		"select url, is_deleted from urls where alias=$1", shortLink,
 	)
 
-	url := new(string)
-	if err := row.Scan(url); err != nil {
+	var (
+		url        string
+		is_deleted bool
+	)
+	if err := row.Scan(&url, &is_deleted); err != nil {
 		return "", err
 	}
-	return *url, nil
+
+	if is_deleted {
+		return "", ErrEntityDeleted
+	}
+
+	return url, nil
 }
 
 func (pg *postgresStorage) AddShortURL(
@@ -98,6 +106,36 @@ func (pg *postgresStorage) GetUserURLs(UUID string) ([]models.URL, error) {
 		return nil, err
 	}
 	return urls, nil
+
+}
+
+func (pg *postgresStorage) DeleteURLs(
+	ctx context.Context,
+	shortURLs []string,
+	userID string,
+) error {
+	tx, err := pg.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	query := `
+		update urls
+		set is_deleted = true
+		where alias = $1
+		  and uuid = $2
+		`
+	for _, url := range shortURLs {
+		_, err := tx.ExecContext(ctx, query, url, userID)
+		if err != nil {
+			tx.Rollback()
+			return nil
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
 
 }
 

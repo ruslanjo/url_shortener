@@ -81,11 +81,19 @@ func (s *HashMapStorage) SaveURLBatched(
 	return nil
 }
 
-func (s *HashMapStorage) GetUserURLs(UUID string) ([]models.URL, error){
+func (s *HashMapStorage) GetUserURLs(UUID string) ([]models.URL, error) {
 	return nil, fmt.Errorf("not implemented in hashmap storage")
 }
 
 func (s *HashMapStorage) PingContext(ctx context.Context) error {
+	return nil
+}
+
+func (s *HashMapStorage) DeleteURLs(
+	ctx context.Context,
+	shortURLs []string,
+	userID string,
+) error {
 	return nil
 }
 
