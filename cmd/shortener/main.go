@@ -18,12 +18,14 @@ func setUpRouter(storage storage.Storage, tokenGen mw.TokenGenerator) *chi.Mux {
 	r.Use(mw.RequestLogger)
 	r.Use(mw.Compression)
 
-	r.Route("/", func(r chi.Router) {
-		r.Post("/", mw.Signup(h.CreateShortURLHandler(storage), tokenGen))
-		r.Get("/{shortURL}", h.GetURLByShortLinkHandler(storage))
-		r.Post("/api/shorten", mw.Signup(h.GetShortURLJSONHandler(storage), tokenGen))
-		r.Post("/api/shorten/batch", mw.Signup(h.BatchShortenHandler(storage), tokenGen))
-		r.Get("/ping", h.PingDBHandler(storage))
+	r.Post("/", mw.Signup(h.CreateShortURLHandler(storage), tokenGen))
+	r.Get("/{shortURL}", h.GetURLByShortLinkHandler(storage))
+	r.Get("/ping", h.PingDBHandler(storage))
+	r.Route("/api/shorten", func(r chi.Router) {
+		r.Post("/", mw.Signup(h.GetShortURLJSONHandler(storage), tokenGen))
+		r.Post("/batch", mw.Signup(h.BatchShortenHandler(storage), tokenGen))
+	})
+	r.Route("/api/user/urls", func(r chi.Router) {
 		r.Get("/api/user/urls", h.GetUserURLsHandler(storage, tokenGen))
 		r.Delete("/api/user/urls", mw.Signup(h.DeleteURLsHandler(storage), tokenGen))
 	})

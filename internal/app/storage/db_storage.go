@@ -26,13 +26,13 @@ func (pg *postgresStorage) GetURLByShortLink(shortLink string) (string, error) {
 
 	var (
 		url        string
-		is_deleted bool
+		isDeleted bool
 	)
-	if err := row.Scan(&url, &is_deleted); err != nil {
+	if err := row.Scan(&url, &isDeleted); err != nil {
 		return "", err
 	}
 
-	if is_deleted {
+	if isDeleted {
 		return "", ErrEntityDeleted
 	}
 
