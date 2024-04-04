@@ -35,7 +35,10 @@ const (
 	TokenLifeTime time.Duration = 3 * time.Hour
 )
 
+
+type CtxString string
+
 const (
-	CtxUserIDKey string = "userID"
+	CtxUserIDKey CtxString = "userID"
 	AuthCookie   string = "jwt_token"
 )
