@@ -86,7 +86,7 @@ func (s *HashMapStorage) GetUserURLs(UUID string) ([]models.URL, error) {
 }
 
 func (s *HashMapStorage) PingContext(ctx context.Context) error {
-	return nil
+	return fmt.Errorf("not implemented in hashmap storage")
 }
 
 func (s *HashMapStorage) DeleteURLs(
@@ -94,7 +94,7 @@ func (s *HashMapStorage) DeleteURLs(
 	shortURLs []string,
 	userID string,
 ) error {
-	return nil
+	return fmt.Errorf("not implemented in hashmap storage")
 }
 
 func (s *HashMapStorage) LoadFromDisk() error {
