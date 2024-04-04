@@ -34,3 +34,8 @@ const (
 	JWTSecret     string        = "s3cr3t" // it should be read from envs
 	TokenLifeTime time.Duration = 3 * time.Hour
 )
+
+const (
+	CtxUserIDKey string = "userID"
+	AuthCookie   string = "jwt_token"
+)

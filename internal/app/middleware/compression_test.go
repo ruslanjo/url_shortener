@@ -3,12 +3,14 @@ package middleware
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,6 +48,8 @@ func TestGzipCompression(t *testing.T) {
 		r.RequestURI = ""
 		r.Header.Set("Accept-Encoding", "gzip")
 		r.Header.Set("Content-Encoding", "application/json")
+		ctx := context.WithValue(r.Context(), config.CtxUserIDKey, "random")
+		r = r.WithContext(ctx)
 
 		resp, err := http.DefaultClient.Do(r)
 		require.NoError(t, err)

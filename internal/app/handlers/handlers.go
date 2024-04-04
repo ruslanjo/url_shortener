@@ -17,13 +17,26 @@ import (
 	"github.com/ruslanjo/url_shortener/internal/core"
 )
 
+func getUserIDFromCtx(ctx context.Context) (string, error) {
+	userIDCtx := ctx.Value(config.CtxUserIDKey)
+	userID, ok := userIDCtx.(string)
+	if !ok {
+		return "", fmt.Errorf("error while receiving request's userID")
+	}
+	return userID, nil
+}
+
 func CreateShortURLHandler(store storage.Storage) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		var statusCode int = http.StatusCreated
 
-		userID := req.Header.Get(middleware.UserIDHeader)
+		userID, err := getUserIDFromCtx(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		data, err := io.ReadAll(req.Body)
+		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -48,9 +61,9 @@ func CreateShortURLHandler(store storage.Storage) http.HandlerFunc {
 }
 
 func GetURLByShortLinkHandler(store storage.Storage) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-		shortURL := chi.URLParam(req, "shortURL")
+		shortURL := chi.URLParam(r, "shortURL")
 		full, err := store.GetURLByShortLink(shortURL)
 		if err != nil {
 			if errors.Is(err, storage.ErrEntityDeleted) {
@@ -61,7 +74,7 @@ func GetURLByShortLinkHandler(store storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, req, full, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, full, http.StatusTemporaryRedirect)
 	}
 }
 
@@ -76,9 +89,13 @@ func GetShortURLJSONHandler(store storage.Storage) http.HandlerFunc {
 			}
 			statusCode int = http.StatusCreated
 		)
-		userID := r.Header.Get(middleware.UserIDHeader)
+		userID, err := getUserIDFromCtx(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		err := json.NewDecoder(r.Body).Decode(&input)
+		err = json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -132,9 +149,13 @@ func BatchShortenHandler(store storage.Storage) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var inputBatch []models.URLBatch
 
-		userID := r.Header.Get(middleware.UserIDHeader)
+		userID, err := getUserIDFromCtx(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		if err := json.NewDecoder(r.Body).Decode(&inputBatch); err != nil {
+		if err = json.NewDecoder(r.Body).Decode(&inputBatch); err != nil {
 			http.Error(w, "could not decode body to JSON", http.StatusBadRequest)
 			return
 		}
@@ -147,7 +168,7 @@ func BatchShortenHandler(store storage.Storage) http.HandlerFunc {
 			inputBatch[i].ShortURL = core.GenerateShortURL(inputBatch[i].OriginalURL)
 		}
 
-		err := store.SaveURLBatched(r.Context(), inputBatch, userID)
+		err = store.SaveURLBatched(r.Context(), inputBatch, userID)
 
 		if err != nil {
 			http.Error(
@@ -182,7 +203,7 @@ func GetUserURLsHandler(
 	tokenGen middleware.TokenGenerator,
 ) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(middleware.AuthCookie)
+		cookie, err := r.Cookie(config.AuthCookie)
 
 		if err == http.ErrNoCookie {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -235,18 +256,19 @@ func DeleteURLsHandler(store storage.Storage) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var shortURLs []string
 
-		userID := r.Header.Get(middleware.UserIDHeader)
-		err := json.NewDecoder(r.Body).Decode(&shortURLs)
+		userID, err := getUserIDFromCtx(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&shortURLs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		err = store.DeleteURLs(context.Background(), shortURLs, userID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+		go store.DeleteURLs(context.Background(), shortURLs, userID)
 		w.WriteHeader(http.StatusAccepted)
 	}
 	return fn

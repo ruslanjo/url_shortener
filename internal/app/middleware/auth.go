@@ -1,17 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/ruslanjo/url_shortener/internal/config"
 )
-
-const UserIDHeader string = "X-USER-ID"
-const AuthCookie string = "jwt_token"
 
 var ErrTokenNotValid = errors.New("invalid JWT token")
 
@@ -20,15 +17,15 @@ type CustomClaims struct {
 }
 
 type Claims struct {
-	jwt.RegisteredClaims
 	CustomClaims
+	jwt.RegisteredClaims
 }
 
 func Signup(next http.HandlerFunc, tokenGen TokenGenerator) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var userID string
 
-		cookie, err := r.Cookie(AuthCookie)
+		cookie, err := r.Cookie(config.AuthCookie)
 
 		switch {
 		case err == nil:
@@ -36,7 +33,7 @@ func Signup(next http.HandlerFunc, tokenGen TokenGenerator) http.HandlerFunc {
 			claims, err := tokenGen.GetClaims(tokenString)
 
 			if err != nil {
-				err = generateAddAuthCookie(&userID, tokenGen, w, r)
+				err = AddAuthCookie(&userID, tokenGen, w, r)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -47,7 +44,7 @@ func Signup(next http.HandlerFunc, tokenGen TokenGenerator) http.HandlerFunc {
 			}
 
 		case errors.Is(err, http.ErrNoCookie):
-			err = generateAddAuthCookie(&userID, tokenGen, w, r)
+			err = AddAuthCookie(&userID, tokenGen, w, r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -57,9 +54,10 @@ func Signup(next http.HandlerFunc, tokenGen TokenGenerator) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		r.Header.Set(UserIDHeader, userID)
-		next(w, r)
+		ctx := context.WithValue(r.Context(), config.CtxUserIDKey, userID)
+		next(w, r.WithContext(ctx))
 	}
+
 	return fn
 }
 
@@ -67,9 +65,6 @@ type TokenGenerator struct{}
 
 func (t TokenGenerator) Create(customClaims CustomClaims) (string, error) {
 	claims := Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(config.TokenLifeTime)),
-		},
 		CustomClaims: customClaims,
 	}
 	token := jwt.NewWithClaims(
@@ -111,19 +106,6 @@ func generateUUID() string {
 }
 
 func AddAuthCookie(
-	tokenString string,
-	w http.ResponseWriter,
-	r *http.Request,
-) {
-
-	newCookie := http.Cookie{
-		Name:  AuthCookie,
-		Value: tokenString,
-	}
-	http.SetCookie(w, &newCookie)
-}
-
-func generateAddAuthCookie(
 	userID *string,
 	tokenGen TokenGenerator,
 	w http.ResponseWriter,
@@ -140,6 +122,11 @@ func generateAddAuthCookie(
 		return err
 	}
 
-	AddAuthCookie(tokenString, w, r)
+	newCookie := http.Cookie{
+		Name:  config.AuthCookie,
+		Value: tokenString,
+	}
+	http.SetCookie(w, &newCookie)
+
 	return nil
 }
