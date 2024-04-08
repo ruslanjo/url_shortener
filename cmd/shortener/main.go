@@ -1,35 +1,38 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/ruslanjo/url_shortener/internal/app/handlers"
-	"github.com/ruslanjo/url_shortener/internal/app/middleware"
+	h "github.com/ruslanjo/url_shortener/internal/app/handlers"
+	mw "github.com/ruslanjo/url_shortener/internal/app/middleware"
 	"github.com/ruslanjo/url_shortener/internal/app/storage"
 	"github.com/ruslanjo/url_shortener/internal/app/storage/disk"
 	"github.com/ruslanjo/url_shortener/internal/config"
 	"github.com/ruslanjo/url_shortener/internal/logger"
 )
 
-func setUpRouter(storage storage.Storage, db *sql.DB) *chi.Mux {
+func setUpRouter(storage storage.Storage, tokenGen mw.TokenGenerator) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestLogger)
-	r.Use(middleware.Compression)
+	r.Use(mw.RequestLogger)
+	r.Use(mw.Compression)
 
-	r.Route("/", func(r chi.Router) {
-		r.Post("/", handlers.CreateShortURLHandler(storage))
-		r.Get("/{shortURL}", handlers.GetURLByShortLinkHandler(storage))
-		r.Post("/api/shorten", handlers.GetShortURLJSONHandler(storage))
-		r.Post("/api/shorten/batch", handlers.BatchShortenHandler(storage))
-		r.Get("/ping", handlers.PingDBHandler(storage))
+	r.Post("/", mw.Signup(h.CreateShortURLHandler(storage), tokenGen))
+	r.Get("/{shortURL}", h.GetURLByShortLinkHandler(storage))
+	r.Get("/ping", h.PingDBHandler(storage))
+	r.Route("/api/shorten", func(r chi.Router) {
+		r.Post("/", mw.Signup(h.GetShortURLJSONHandler(storage), tokenGen))
+		r.Post("/batch", mw.Signup(h.BatchShortenHandler(storage), tokenGen))
+	})
+	r.Route("/api/user/urls", func(r chi.Router) {
+		r.Get("/", h.GetUserURLsHandler(storage, tokenGen))
+		r.Delete("/", mw.Signup(h.DeleteURLsHandler(storage), tokenGen))
 	})
 	return r
 }
 
-func initStorage() (storage.Storage, *sql.DB) {
+func initStorage() storage.Storage {
 	if config.DSN == "" {
 		urlDs := disk.NewURLDiskStorage(config.LocalStoragePath)
 		storage := storage.NewHashMapStorage(urlDs)
@@ -37,23 +40,25 @@ func initStorage() (storage.Storage, *sql.DB) {
 			log.Fatal(err)
 		}
 		logger.Log.Infoln("storage: memory and disk")
-		return storage, nil
+		return storage
 	}
 
-	db := config.MustLoadDB()
-	dbStorage := storage.NewPostgresStorage(db)
-	storage.InitPostgres(db)
+	dbDriver := config.MustLoadDB()
+	dbStorage := storage.NewPostgresStorage(dbDriver)
+	storage.InitPostgres(dbDriver)
 	logger.Log.Infoln("storage: Postgres")
-	return &dbStorage, db
+	return &dbStorage
 }
 
 func main() {
 	config.ConfigureApp()
 	logger.Initialize("info")
 
-	storage, dbDriver := initStorage()
+	storage := initStorage()
 
-	r := setUpRouter(storage, dbDriver)
+	tokenGenerator := mw.TokenGenerator{}
+
+	r := setUpRouter(storage, tokenGenerator)
 	logger.Log.Infoln("Starting server")
 	log.Fatal(http.ListenAndServe(config.ServerAddr, r))
 }

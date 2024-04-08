@@ -12,6 +12,8 @@ func InitPostgres(db *sql.DB) {
 		id serial CONSTRAINT urls_pl PRIMARY KEY,
 		url varchar(512),
 		alias varchar(512),
+		uuid varchar(64),
+		is_deleted boolean default false,
 		CONSTRAINT url_uniq UNIQUE (url),
 		CONSTRAINT alias_uniq UNIQUE (alias)
 	);

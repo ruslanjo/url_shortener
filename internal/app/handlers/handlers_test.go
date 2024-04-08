@@ -58,6 +58,8 @@ func TestCreateShortURLHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.info.fullLink))
 			r.Header.Set("Content-Type", "text/plain")
+			ctx := context.WithValue(r.Context(), config.CtxUserIDKey, "random")
+			r = r.WithContext(ctx)
 			CreateShortURLHandler(mockDao)(w, r)
 			res := w.Result()
 
@@ -161,6 +163,8 @@ func TestGetShortURLJSONHandler(t *testing.T) {
 			buf := bytes.NewBuffer([]byte(tt.body))
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, url, buf)
+			ctx := context.WithValue(r.Context(), config.CtxUserIDKey, "random")
+			r = r.WithContext(ctx)
 			if len(tt.body) > 0 {
 				r.Header.Set("Content-Type", "application/json")
 			}
